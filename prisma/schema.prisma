@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = "mongodb+srv://airbnb:QBSS2QE6kQ3FSLFj@cluster0.8ehdgpg.mongodb.net/airbnb?retryWrites=true&w=majority&appName=Cluster0"
+  url      = env("DATABASE_URL")
 }
 
 model User {
