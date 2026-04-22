@@ -98,7 +98,7 @@ export default function ListingPage() {
 
                                 <div className="flex items-center gap-1 text-gray-600">
                                     <Shield className="w-4 h-4 text-accent-600" />
-                                    <span className="text-gray-900">Payment Protected</span>
+                                    <span className="text-gray-900">WhatsApp Support</span>
                                 </div>
                             </div>
                         </div>
@@ -169,9 +169,9 @@ export default function ListingPage() {
                                 </div>
                                 <div className="text-xs text-gray-500 underline">Dec 20 - Dec 27</div>
                             </div>
-                            <button className="btn-primary px-8 py-3 rounded-xl shadow-lg">
+                            <Link href={`/book/${listing.id}`} className="btn-primary px-8 py-3 rounded-xl shadow-lg">
                                 Rent Now
-                            </button>
+                            </Link>
                         </div>
                     </div>
 
@@ -213,18 +213,18 @@ export default function ListingPage() {
                                 <div className="bg-accent-50 rounded-xl p-4 flex gap-3 items-start border border-accent-100">
                                     <Shield className="w-5 h-5 text-accent-600 flex-shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-bold text-accent-800">Secure Payments</p>
-                                        <p className="text-xs text-accent-700 mt-0.5">Your money is protected by StudentStay.</p>
+                                        <p className="text-sm font-bold text-accent-800">Quick Support</p>
+                                        <p className="text-xs text-accent-700 mt-0.5">Chat with us on WhatsApp for any inquiries.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <button className="w-full btn-primary py-3.5 text-lg font-bold shadow-colored mb-4">
+                            <Link href={`/book/${listing.id}`} className="w-full btn-primary py-3.5 text-lg font-bold shadow-colored mb-4 text-center block">
                                 Rent This Space
-                            </button>
+                            </Link>
 
                             <div className="text-center text-sm text-gray-500 mb-6">
-                                You won't be charged yet
+                                Quick response guaranteed
                             </div>
 
                             <div className="space-y-3 pt-6 border-t border-gray-100">

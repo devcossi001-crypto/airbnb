@@ -23,10 +23,17 @@ export default async function DashboardPage() {
         redirect("/login?from=/dashboard");
     }
 
-    const bookings = await prisma.booking.findMany({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: "desc" },
-    });
+    let bookings: any[] = [];
+    try {
+        bookings = await prisma.booking.findMany({
+            where: { userId: session.user.id },
+            orderBy: { createdAt: "desc" },
+        });
+    } catch (error) {
+        console.error("Failed to fetch bookings from Prisma:", error);
+        // Fallback to empty bookings or mock data to prevent crash
+        bookings = [];
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
@@ -111,8 +118,8 @@ export default async function DashboardPage() {
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Booking ID: #{booking.id.slice(-6).toUpperCase()}</span>
                                                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${booking.status === "SUCCESS" || booking.status === "PAID"
-                                                                ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                                                                : "bg-amber-50 text-amber-600 border border-amber-100"
+                                                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                                            : "bg-amber-50 text-amber-600 border border-amber-100"
                                                             }`}>
                                                             {booking.status}
                                                         </span>

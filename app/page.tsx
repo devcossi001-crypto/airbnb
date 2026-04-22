@@ -1,511 +1,580 @@
+"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Home, Shield, Sparkles, CheckCircle, Star, MapPin, Clock, Users, User as UserIcon } from "lucide-react";
-import { getSession } from "./lib/auth";
+import { 
+  Trophy, 
+  Ticket, 
+  Users, 
+  MapPin, 
+  Calendar, 
+  Clock, 
+  Star, 
+  Music, 
+  Gamepad2, 
+  Zap, 
+  ChevronRight,
+  Monitor,
+  Flame
+} from "lucide-react";
 
-export default async function HomePage() {
-  const session = await getSession();
-  const userName = session?.user?.fullName?.split(" ")[0];
+const TICKETS = [
+  {
+    id: "general",
+    name: "General Admission",
+    price: 150,
+    currency: "AED",
+    desc: "Access to all exhibition halls, live shows & gaming zones",
+    perks: ["All Exhibit Halls", "Live Performances", "Gaming Zones", "Food Court Access"],
+    color: "#3b82f6",
+    badge: "",
+  },
+  {
+    id: "vip",
+    name: "VIP Elite Pass",
+    price: 450,
+    currency: "AED",
+    desc: "Premium experience with priority access & exclusive lounges",
+    perks: ["All General Benefits", "VIP Lounge Access", "Priority Entry", "Meet & Greet Artists", "Official Merchandise"],
+    color: "#f59e0b",
+    badge: "MOST POPULAR",
+  },
+  {
+    id: "ultimate",
+    name: "Legendary Pass",
+    price: 950,
+    currency: "AED",
+    desc: "The full champion experience — tournaments, backstage & more",
+    perks: ["All VIP Benefits", "Tournament Entry", "Backstage Pass", "Pro Player Session", "Premium Gift Pack", "VIP Parking"],
+    color: "#a855f7",
+    badge: "ULTIMATE EXPERIENCE",
+  },
+];
+
+const ARTISTS = [
+  { name: "DJ Bliss", role: "Main Stage Headliner", img: "/artist_stage.png" },
+  { name: "AboFlah", role: "Gaming Influencer Legend", img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=400" },
+  { name: "BanderitaX", role: "Meet & Greet Star", img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400" },
+];
+
+const EVENT_DATE = new Date("2026-05-08T10:00:00+04:00");
+
+export default function GameExpoPage() {
+  const [selected, setSelected] = useState("vip");
+  const [qty, setQty] = useState(1);
+  const [countdown, setCountdown] = useState({ d: 0, h: 0, m: 0, s: 0 });
+  const [scrolled, setScrolled] = useState(false);
+  const [paymentStep, setPaymentStep] = useState("form"); // form, methods, processing, success
+  const [selectedPayment, setSelectedPayment] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    
+    const tick = () => {
+      const diff = EVENT_DATE.getTime() - Date.now();
+      if (diff <= 0) return;
+      setCountdown({
+        d: Math.floor(diff / 86400000),
+        h: Math.floor((diff % 86400000) / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const ticket = TICKETS.find((t) => t.id === selected)!;
+  const total = ticket.price * qty;
 
   return (
-    <div className="min-h-screen">
-      {/* Header/Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass m-4 rounded-3xl shadow-xl border border-white/20">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-11 h-11 rounded-xl bg-primary-500 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                <Home className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-2xl font-black text-primary-500 leading-none tracking-tighter">StudentStay</span>
-                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em]">Student Housing</span>
-              </div>
-            </Link>
-
-            <nav className="hidden lg:flex items-center gap-8">
-              <Link href="/search" className="text-gray-600 hover:text-primary-600 font-bold transition flex items-center gap-2">
-                Find a Place
-              </Link>
-              <Link href="/about" className="text-gray-600 hover:text-primary-600 font-bold transition">
-                How It Works
-              </Link>
-            </nav>
-
-            <div className="flex items-center gap-4">
-              {session ? (
-                <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
-                  <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                    <UserIcon className="w-4 h-4 text-primary-600" />
-                  </div>
-                  <span className="font-bold text-gray-900 text-sm">Hi, {userName}</span>
-                </div>
-              ) : (
-                <>
-                  <Link href="/login" className="btn-ghost px-5 py-2.5 text-sm font-bold">
-                    Login
-                  </Link>
-                  <Link href="/register" className="btn-primary px-6 py-2.5 text-sm font-bold rounded-2xl">
-                    Sign Up
-                  </Link>
-                </>
-              )}
+    <div className="bg-[#020617] min-h-screen text-white selection:bg-primary-500/30">
+      {/* Dynamic Header */}
+      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${scrolled ? "bg-[#020617]/90 backdrop-blur-xl border-b border-white/5 py-3" : "bg-transparent py-6"}`}>
+        <div className="container mx-auto px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3 group cursor-pointer">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] group-hover:scale-110 transition-transform">
+              <Zap className="w-6 h-6 text-white fill-white" />
+            </div>
+            <div>
+              <div className="font-black text-2xl tracking-tighter bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">NexusPass Dubai</div>
+              <div className="text-[10px] font-bold text-blue-500/80 tracking-[0.3em] uppercase">Official Ticketing Partner</div>
             </div>
           </div>
+          
+          <div className="hidden md:flex items-center gap-8">
+            {[
+              { label: "Expectation", id: "events" },
+              { label: "Artists", id: "artists" },
+              { label: "Tickets", id: "tickets" },
+              { label: "Location", id: "venue" }
+            ].map((item) => (
+              <a 
+                key={item.id} 
+                href={`#${item.id}`} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-sm font-bold text-slate-400 hover:text-white transition-colors"
+              >
+                {item.label}
+              </a>
+            ))}
+            <a 
+              href="#tickets" 
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('tickets')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-black hover:bg-blue-500 hover:text-white transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+            >
+              Book Tickets
+            </a>
+          </div>
         </div>
-      </header>
+      </nav>
+
       {/* Hero Section */}
-      <section className="relative pt-40 pb-32 overflow-hidden min-h-[90vh] flex items-center">
-        {/* Modern Image Background with Overlay */}
-        <div className="absolute inset-0 -z-10">
-          <img
-            src="/isavo_estate_hero_png_1767876964658.png"
-            alt="Isavo Estate Hero"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/40 to-white/90"></div>
-          {/* Animated Blobs */}
-          <div className="absolute top-40 left-20 w-96 h-96 bg-primary-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 animate-float"></div>
-          <div className="absolute bottom-40 right-20 w-96 h-96 bg-accent-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        {/* Background Image with optimized overlay */}
+        <div className="absolute inset-0 z-0">
+          <img src="/gameexpo_hero_dubai.png" alt="GameExpo" className="w-full h-full object-cover opacity-40 scale-105 animate-pulse-slow" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020617] via-transparent to-[#020617]" />
         </div>
 
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto text-center animate-fade-in">
-            {/* Trust Badge */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 mb-10 slide-up">
-              <Shield className="w-5 h-5 text-primary-600" />
-              <span className="text-sm font-bold text-gray-800 tracking-wide uppercase">Verified & Trusted Student Housing Platform</span>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-black tracking-widest uppercase mb-8 animate-bounce-subtle">
+              <Flame className="w-4 h-4 fill-current" /> Selling Fast: 85% Tickets Gone
             </div>
-
-            <h1 className="heading-1 mb-6 text-gray-900">
-              Find Your Perfect <br />
-              <span className="text-primary-500">Student Home</span>
+            
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black leading-[0.9] mb-8 tracking-tighter">
+              <span className="block opacity-70 text-4xl md:text-5xl lg:text-6xl mb-4 font-bold tracking-normal">The Event</span>
+              <span className="bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">We're Waiting For</span>
             </h1>
 
-            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
-              Safe, verified student housing in Kabarak, Nakuru, and
-              <span className="font-bold text-primary-500"> Isavo Estate</span>.
-              Personally inspected for your peace of mind.
+            <p className="text-xl md:text-2xl text-slate-400 max-w-2xl mb-12 leading-relaxed font-medium">
+              Join the world's largest gathering of gaming legends, pro esports athletes, and tech visionaries in Dubai.
             </p>
 
-            {/* Smart Search Box - Revamped */}
-            <div className="max-w-4xl mx-auto mb-16 px-4">
-              <div className="bg-white shadow-[0_16px_32px_rgba(0,0,0,0.1)] rounded-full p-2 flex flex-col md:flex-row items-center gap-2 border border-gray-100">
-                <div className="flex-1 w-full relative group px-6">
-                  <label className="block text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1">Where</label>
-                  <input
-                    type="text"
-                    placeholder="Search locations..."
-                    className="w-full p-0 text-sm bg-transparent border-none focus:ring-0 placeholder:text-gray-400 font-medium"
-                  />
+            <div className="flex flex-col sm:flex-row gap-6 mb-16">
+              <a href="#tickets" className="bg-blue-600 hover:bg-blue-500 px-10 py-5 rounded-2xl text-lg font-black transition-all shadow-[0_20px_50px_rgba(37,99,235,0.3)] flex items-center justify-center gap-3">
+                <Ticket className="w-6 h-6" /> Get My Pass
+              </a>
+              <div className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <div className="flex -space-x-3">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-[#020617] bg-slate-800 overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?u=${i}`} alt="User" />
+                    </div>
+                  ))}
                 </div>
-                <div className="h-8 w-[1px] bg-gray-200 hidden md:block"></div>
-                <div className="flex-1 w-full relative group px-6 text-left">
-                  <label className="block text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1">Check In</label>
-                  <div className="text-sm text-gray-400 font-medium">Add dates</div>
+                <div className="text-sm font-bold">
+                  <div className="text-white">+50k Attending</div>
+                  <div className="text-slate-500 text-xs font-medium">Verified Bookings</div>
                 </div>
-                <button className="bg-primary-500 hover:bg-primary-600 text-white w-full md:w-auto p-4 rounded-full transition-all flex items-center justify-center">
-                  <Search className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-3 mt-8 justify-center">
-                {[
-                  { name: "Kabarak", icon: <MapPin className="w-4 h-4" /> },
-                  { name: "Nakuru Town", icon: <MapPin className="w-4 h-4" /> },
-                  { name: "RVIST", icon: <MapPin className="w-4 h-4" /> },
-                  { name: "Isavo Estate", icon: <Sparkles className="w-4 h-4 text-accent-500" />, premium: true }
-                ].map((loc) => (
-                  <button key={loc.name} className={`px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-all ${loc.premium
-                    ? "bg-accent-50 text-accent-700 hover:bg-accent-100 border-2 border-accent-100 shadow-sm shadow-accent-100"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-100 shadow-sm"
-                    }`}>
-                    {loc.icon}
-                    {loc.name}
-                  </button>
-                ))}
               </div>
             </div>
 
-            {/* Stats - Revamped */}
-            <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto pt-8 border-t border-gray-100/30">
-              <div className="text-center group">
-                <div className="text-4xl font-extrabold gradient-text mb-2 group-hover:scale-110 transition-transform">500+</div>
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">Verified Listings</div>
-              </div>
-              <div className="text-center group">
-                <div className="text-4xl font-extrabold gradient-text-accent mb-2 group-hover:scale-110 transition-transform">1,200+</div>
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">Happy Students</div>
-              </div>
-              <div className="text-center group">
-                <div className="text-4xl font-extrabold gradient-text mb-2 group-hover:scale-110 transition-transform">98%</div>
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">Trust Score</div>
-              </div>
+            {/* Countdown Grid */}
+            <div className="grid grid-cols-4 gap-4 max-w-md">
+              {[["d", "Days"], ["h", "Hrs"], ["m", "Min"], ["s", "Sec"]].map(([k, label]) => (
+                <div key={k} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 text-center">
+                  <div className="text-3xl font-black text-blue-400">
+                    {String(countdown[k as keyof typeof countdown]).padStart(2, "0")}
+                  </div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">{label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="section-padding bg-white relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="heading-2 mb-4 text-gray-900">Why StudentStay?</h2>
-            <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-              Built for students, with verified listings and secure payments
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Feature 1 */}
-            <div className="card hover-lift group border-2 border-transparent hover:border-primary-100">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                <CheckCircle className="w-8 h-8 text-white" />
+      {/* Anticipation Section (New Image) */}
+      <section id="events" className="py-24 bg-white/5 border-y border-white/5 overflow-hidden">
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="relative group">
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-[2rem] opacity-20 blur-2xl group-hover:opacity-30 transition-opacity" />
+              <img 
+                src="/crowd_waiting.png" 
+                alt="Excited Crowd" 
+                className="relative rounded-[2rem] border border-white/10 shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]"
+              />
+              <div className="absolute bottom-8 left-8 right-8 p-6 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10">
+                <div className="text-2xl font-black mb-1">Unmatched Hype</div>
+                <div className="text-slate-300 text-sm">Fans are already securing their spots for the most anticipated gaming week in history.</div>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Verified Listings</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Every listing is reviewed and verified before being published to ensure quality and authenticity
-              </p>
             </div>
-
-            {/* Feature 2 */}
-            <div className="card hover-lift group border-2 border-transparent hover:border-accent-100">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Secure Payments</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Pay with M-PESA. Your transactions are secure and protected.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="card hover-lift group border-2 border-transparent hover:border-primary-100">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Admin Inspected</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Every listing personally reviewed and approved before going live
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="card hover-lift group border-2 border-transparent hover:border-accent-100">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-600 to-primary-600 flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform">
-                <Clock className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Holiday-Focused</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Perfect for long breaks. Auto-available during academic holidays
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Location Section */}
-      <section className="section-padding bg-gray-900 text-white relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-16">
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-500 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
-                Featured Location
-              </div>
-              <h2 className="text-4xl font-bold mb-6 leading-tight">
-                Modern Student Living <br />
-                at <span className="text-primary-400">Isavo Estate</span>
-              </h2>
-              <p className="text-lg text-gray-400 mb-8 leading-relaxed max-w-xl font-medium">
-                Experience premium student housing with verified hosts and secure payments.
-              </p>
-
-              <div className="grid grid-cols-2 gap-6 mb-10">
+            
+            <div>
+              <h2 className="text-5xl font-black mb-8 leading-tight">Millions Waiting, <br/><span className="text-blue-500">Only Thousands Get In.</span></h2>
+              <div className="space-y-8">
                 {[
-                  { title: "24/7 Security", desc: "Gate guarded community" },
-                  { title: "High Speed WiFi", desc: "Unlimited fiber" },
-                  { title: "Study Spaces", desc: "Built-in desks" },
-                  { title: "Transport", desc: "Regular shuttles" }
-                ].map((item) => (
-                  <div key={item.title} className="flex gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" />
+                  { icon: <Users />, title: "Massive Community", desc: "Connect with players from over 150 countries." },
+                  { icon: <Monitor />, title: "Future Tech", desc: "Be the first to play unreleased titles on next-gen hardware." },
+                  { icon: <Trophy />, title: "Glory Awaits", desc: "Watch the world's top teams battle for $2M+ prize pools." }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-6">
+                    <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+                      {item.icon}
+                    </div>
                     <div>
-                      <div className="font-bold text-white">{item.title}</div>
-                      <div className="text-sm text-gray-400">{item.desc}</div>
+                      <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                      <p className="text-slate-400 leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <Link href="/search?location=ISAVO_ESTATE" className="btn-primary px-10 py-4 text-lg inline-flex items-center gap-2">
-                Explore Listings
-              </Link>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="flex-1 w-full max-w-2xl">
-              <div className="relative">
-                <img
-                  src="/isavo_bedsitter_luxury_png_1767876981003.png"
-                  alt="Isavo Estate Interior"
-                  className="rounded-3xl shadow-2xl relative z-10"
-                />
-                <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-2xl z-20 shadow-xl hidden md:block border border-gray-100">
-                  <div className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-1">Starting from</div>
-                  <div className="text-gray-900 font-black text-3xl">KSh 7,500</div>
-                  <div className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mt-1">Per Week</div>
+      {/* Artists Section */}
+      <section id="artists" className="py-32 relative">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-8">
+            <div className="max-w-2xl">
+              <div className="text-blue-500 font-black tracking-widest uppercase text-sm mb-4">The Lineup</div>
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter">Star Guests & Performers</h2>
+            </div>
+            <p className="text-slate-400 font-medium max-w-sm">Meet your favorite creators and watch legendary performances live on the GameExpo Main Stage.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {ARTISTS.map((artist) => (
+              <div key={artist.name} className="group relative rounded-3xl overflow-hidden aspect-[4/5] border border-white/5">
+                <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-8">
+                  <div className="bg-blue-600 w-12 h-1 gap-2 mb-4 group-hover:w-24 transition-all duration-500" />
+                  <h3 className="text-3xl font-black mb-2">{artist.name}</h3>
+                  <p className="text-blue-400 font-bold uppercase text-xs tracking-widest">{artist.role}</p>
                 </div>
+                {artist.name === "DJ Bliss" && (
+                  <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                    <Music className="w-6 h-6 text-white" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tickets Section */}
+      <section id="tickets" className="py-32 bg-blue-600 relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-black rounded-full blur-[120px]" />
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10 text-white">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-6">Choose Your Pass</h2>
+            <p className="text-blue-100 text-xl font-medium">All tickets include access to the main arena and festival zones.</p>
+          </div>
+
+          {paymentStep === "form" ? (
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+              {TICKETS.map((t) => (
+                <div 
+                  key={t.id} 
+                  onClick={() => setSelected(t.id)}
+                  className={`relative p-10 rounded-[2.5rem] cursor-pointer transition-all duration-500 border-2 ${selected === t.id ? "bg-white text-black border-white shadow-[0_30px_60px_rgba(0,0,0,0.3)] scale-105" : "bg-blue-700/40 border-blue-400/30 text-white hover:bg-blue-700/60"}`}
+                >
+                  {t.badge && (
+                    <div className="absolute -top-4 left-10 px-4 py-2 bg-black text-white text-[10px] font-black tracking-widest uppercase rounded-full">
+                      {t.badge}
+                    </div>
+                  )}
+                  
+                  <div className="text-sm font-black uppercase tracking-widest mb-2 opacity-60">{t.name}</div>
+                  <div className="flex items-baseline gap-2 mb-8">
+                    <span className="text-5xl font-black tracking-tighter">{t.currency} {t.price}</span>
+                    <span className="text-sm font-bold opacity-60">/person</span>
+                  </div>
+
+                  <div className="space-y-4 mb-10">
+                    {t.perks.map(perk => (
+                      <div key={perk} className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${selected === t.id ? "bg-blue-600 text-white" : "bg-white/20 text-white"}`}>
+                          <ChevronRight className="w-3 h-3" />
+                        </div>
+                        <span className="text-sm font-bold">{perk}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button className={`w-full py-4 rounded-2xl font-black text-lg transition-all ${selected === t.id ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-white text-blue-600 hover:bg-blue-50"}`}>
+                    Select {t.id === "ultimate" ? "Legend" : "Pass"}
+                  </button>
+                </div>
+              ))}
+
+              {/* Dynamic Booking Summary */}
+              <div className="lg:col-span-3 mt-12 bg-black/20 backdrop-blur-xl border border-white/10 rounded-[3rem] p-8 md:p-12 flex flex-col md:flex-row gap-12 items-center justify-between">
+                <div className="flex-1 space-y-6 w-full">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-blue-200">Full Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="Your Name" 
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 outline-none focus:border-white transition-colors font-bold placeholder:text-white/30" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-blue-200">Email Address</label>
+                      <input 
+                        type="email" 
+                        placeholder="email@example.com" 
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 outline-none focus:border-white transition-colors font-bold placeholder:text-white/30" 
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-8">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-blue-200">Quantity</label>
+                      <div className="flex items-center gap-4 bg-white/10 p-2 rounded-2xl border border-white/20">
+                        <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center font-black transition-colors">-</button>
+                        <span className="text-xl font-black min-w-[2rem] text-center">{qty}</span>
+                        <button onClick={() => setQty(Math.min(10, qty + 1))} className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center font-black transition-colors">+</button>
+                      </div>
+                    </div>
+                    <div className="pt-6">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-1">Total Amount</div>
+                      <div className="text-4xl font-black tracking-tighter">AED {total.toLocaleString()}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => setPaymentStep("methods")}
+                  className="bg-white text-blue-600 px-12 py-8 rounded-[2.5rem] text-2xl font-black hover:scale-105 transition-transform shadow-[0_20px_50px_rgba(0,0,0,0.2)]"
+                >
+                  Confirm & Pay
+                </button>
+              </div>
+            </div>
+          ) : paymentStep === "methods" ? (
+              <div className="max-w-4xl mx-auto bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-12 animate-scale-in">
+                <h3 className="text-4xl font-black mb-8 text-center">Select Payment Method</h3>
+                <div className="grid md:grid-cols-2 gap-6 mb-10">
+                  {[
+                    { id: "apple", name: "Apple Pay", icon: "🍎", color: "bg-black" },
+                    { id: "card", name: "Credit/Debit Card", icon: "💳", color: "bg-blue-600" },
+                    { id: "tabby", name: "Tabby", icon: "🟢", color: "bg-emerald-400" },
+                  ].map(method => (
+                    <div 
+                      key={method.id}
+                      onClick={() => setSelectedPayment(method.id)}
+                      className={`p-8 rounded-3xl cursor-pointer border-2 transition-all flex items-center gap-6 ${selectedPayment === method.id ? "border-white bg-white/10" : "border-white/5 bg-white/5 hover:bg-white/10"}`}
+                    >
+                      <div className={`w-16 h-16 rounded-2xl ${method.color} flex items-center justify-center text-3xl shadow-lg`}>
+                        {method.icon}
+                      </div>
+                      <div>
+                        <div className="text-xl font-black">{method.name}</div>
+                        <div className="text-slate-500 text-sm font-bold uppercase tracking-widest">Secure Checkout</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex flex-col md:flex-row gap-6">
+                  <button 
+                    onClick={() => setPaymentStep("form")}
+                    className="flex-1 py-6 rounded-2xl border border-white/10 font-black hover:bg-white/5 transition-colors"
+                  >
+                    Go Back
+                  </button>
+                  <button 
+                    disabled={!selectedPayment}
+                    onClick={() => {
+                      setPaymentStep("processing");
+                      
+                      // WhatsApp Routing Logic for Apple Pay
+                      if (selectedPayment === "apple") {
+                        const message = `Hello! I'd like to confirm my booking for Dubai GameExpo 2026.
+                        
+--- BOOKING INVOICE ---
+👤 Name: ${customerName || "Customer"}
+📧 Email: ${customerEmail || "N/A"}
+🎟️ Ticket: ${ticket.name}
+🔢 Quantity: ${qty}
+💰 Total: AED ${total.toLocaleString()}
+💳 Method: Apple Pay
+----------------------
+
+Please provide the next steps for my e-ticket.`;
+                        
+                        const encodedMsg = encodeURIComponent(message);
+                        const whatsappUrl = `https://wa.me/254757450716?text=${encodedMsg}`; // Simulation number
+                        
+                        setTimeout(() => {
+                          window.open(whatsappUrl, "_blank");
+                          setPaymentStep("success");
+                        }, 2500);
+                      } else {
+                        setTimeout(() => setPaymentStep("success"), 3000);
+                      }
+                    }}
+                    className={`flex-[2] py-6 rounded-2xl font-black text-xl transition-all shadow-2xl ${selectedPayment ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 cursor-not-allowed opacity-50"}`}
+                  >
+                    {selectedPayment ? `Pay AED ${total.toLocaleString()} with ${selectedPayment.toUpperCase()}` : "Select a Payment Method"}
+                  </button>
+                </div>
+              </div>
+            ) : paymentStep === "processing" ? (
+              <div className="max-w-2xl mx-auto bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-20 text-center animate-scale-in">
+                <div className="relative w-24 h-24 mx-auto mb-8">
+                  <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+                <h3 className="text-3xl font-black mb-4 tracking-tighter uppercase">Processing Payment</h3>
+                <p className="text-slate-400 font-medium">Connecting to secure gateway. Please do not refresh or close this window...</p>
+              </div>
+            ) : (
+              <div className="max-w-2xl mx-auto bg-white rounded-[3rem] p-16 text-center text-black shadow-2xl animate-scale-in">
+                <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-8 shadow-[0_0_40px_rgba(34,197,94,0.4)]">
+                  <Zap className="w-12 h-12 fill-white" />
+                </div>
+                <h3 className="text-5xl font-black tracking-tighter mb-4">You're In!</h3>
+                <p className="text-slate-500 text-lg font-medium mb-10 leading-relaxed">
+                  Confirmation sent to your email. Get ready for the event we've all been waiting for. See you in Dubai!
+                </p>
+                <div className="p-8 rounded-[2rem] bg-slate-50 border border-slate-100 mb-10">
+                  <div className="flex justify-between items-center mb-4 text-sm font-bold uppercase tracking-widest text-slate-400">
+                    <span>Payment via {selectedPayment.toUpperCase()}</span>
+                    <span>Tickets</span>
+                  </div>
+                  <div className="flex justify-between items-center text-2xl font-black">
+                    <span>{ticket.name}</span>
+                    <span>{qty}x</span>
+                  </div>
+                </div>
+                <button onClick={() => {
+                  setPaymentStep("form");
+                  setSelectedPayment("");
+                }} className="text-blue-600 font-black hover:underline">Book more tickets</button>
+              </div>
+            )}
+        </div>
+      </section>
+
+      {/* Venue Section */}
+      <section id="venue" className="py-32 bg-[#050a18]">
+        <div className="container mx-auto px-6 text-center">
+          <MapPin className="w-16 h-16 text-blue-500 mx-auto mb-8" />
+          <h2 className="text-5xl font-black mb-8">Where the Magic Happens</h2>
+          <div className="grid md:grid-cols-2 gap-8 text-left">
+            <div className="p-8 rounded-3xl bg-white/5 border border-white/10">
+              <h3 className="text-2xl font-bold mb-4">Dubai World Trade Centre</h3>
+              <p className="text-slate-400 mb-6">Main Exhibition Halls & Tournament Arenas. Located in the heart of the business district.</p>
+              <div className="flex items-center gap-2 text-blue-400 font-bold">
+                <Calendar className="w-5 h-5" /> May 22 – 24, 2026
+              </div>
+            </div>
+            <div className="p-8 rounded-3xl bg-white/5 border border-white/10">
+              <h3 className="text-2xl font-bold mb-4">Expo City Dubai</h3>
+              <p className="text-slate-400 mb-6">Experience the future of gaming in the high-tech pavilions of Expo 2020 Dubai site.</p>
+              <div className="flex items-center gap-2 text-blue-400 font-bold">
+                <Calendar className="w-5 h-5" /> May 8 – 21, 2026
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="section-padding bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="heading-2 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600">Simple, secure, and student-friendly</p>
-          </div>
-
-          <div className="max-w-3xl mx-auto">
-            {/* For Students */}
+      {/* Footer */}
+      <footer className="py-24 bg-[#01040f] border-t border-white/5">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-16 mb-20">
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white fill-white" />
+                </div>
+                <div className="font-black text-2xl tracking-tighter">NexusPass Dubai</div>
+              </div>
+              <p className="text-slate-500 max-w-sm leading-relaxed font-medium">
+                The official ticketing partner for the Dubai Esports & Games Festival 2026. Join the revolution of gaming entertainment.
+              </p>
+            </div>
+            
             <div>
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <Users className="w-8 h-8 text-primary-600" />
-                How It Works
-              </h3>
-
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center font-bold text-primary-600">
-                    1
-                  </div>
-                  <div>
-                    <h4 className="font-bold mb-1">Search Easily</h4>
-                    <p className="text-gray-600 text-sm">Find houses by location, price, and room type</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center font-bold text-primary-600">
-                    2
-                  </div>
-                  <div>
-                    <h4 className="font-bold mb-1">Book & Pay Securely</h4>
-                    <p className="text-gray-600 text-sm">M-PESA payment for your peace of mind</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center font-bold text-primary-600">
-                    3
-                  </div>
-                  <div>
-                    <h4 className="font-bold mb-1">Get Details</h4>
-                    <p className="text-gray-600 text-sm">Receive host contact and directions after payment</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center font-bold text-primary-600">
-                    4
-                  </div>
-                  <div>
-                    <h4 className="font-bold mb-1">Check-in</h4>
-                    <p className="text-gray-600 text-sm">Simple check-in process. Enjoy your stay!</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust & Safety */}
-      <section className="section-padding bg-gradient-to-br from-primary-600 to-accent-600 text-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <Shield className="w-16 h-16 mx-auto mb-6 opacity-90" />
-            <h2 className="heading-2 mb-6">Your Safety is Our Priority</h2>
-            <p className="text-xl mb-12 opacity-90">
-              Multiple layers of verification and secure payments protect student travelers
-            </p>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="glass p-6 rounded-xl">
-                <Star className="w-10 h-10 mx-auto mb-4" />
-                <h3 className="font-bold text-lg mb-2">Trust Scores</h3>
-                <p className="text-sm opacity-90">Trust ratings based on reviews, verification status, and booking history</p>
-              </div>
-
-              <div className="glass p-6 rounded-xl">
-                <CheckCircle className="w-10 h-10 mx-auto mb-4" />
-                <h3 className="font-bold text-lg mb-2">Student Verification</h3>
-                <p className="text-sm opacity-90">ID upload and school email verification required</p>
-              </div>
-
-              <div className="glass p-6 rounded-xl">
-                <Shield className="w-10 h-10 mx-auto mb-4" />
-                <h3 className="font-bold text-lg mb-2">24/7 Support</h3>
-                <p className="text-sm opacity-90">Dispute resolution and admin available anytime</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="section-padding bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="heading-2 mb-4">What Students Say</h2>
-            <p className="text-xl text-gray-600">Real experiences from real students</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <div className="card hover-lift">
-              <div className="flex gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-primary-500 text-primary-500" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-4">
-                "Found a perfect bedsitter near Kabarak in minutes! The search is super easy to use. Safe and affordable."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold">
-                  J
-                </div>
-                <div>
-                  <div className="font-bold">Jane M.</div>
-                  <div className="text-sm text-gray-600">Kabarak University</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="card hover-lift">
-              <div className="flex gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-primary-500 text-primary-500" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-4">
-                "Listed my room during holidays and got bookings within 2 days. The payment process made me feel secure. Highly recommend!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-primary-500 flex items-center justify-center text-white font-bold">
-                  D
-                </div>
-                <div>
-                  <div className="font-bold">David K.</div>
-                  <div className="text-sm text-gray-600">RVIST Student</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="card hover-lift">
-              <div className="flex gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-primary-500 text-primary-500" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-4">
-                "The verified badge gave me confidence. Photos were accurate, and the whole process was smooth. Best platform for student housing!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center text-white font-bold">
-                  S
-                </div>
-                <div>
-                  <div className="font-bold">Sarah W.</div>
-                  <div className="text-sm text-gray-600">Nakuru Intern</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="section-padding bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center glass-card p-12 rounded-3xl">
-            <h2 className="heading-2 mb-6">Ready to Find Your Home?</h2>
-            <p className="text-xl text-gray-600 mb-8">
-              Join hundreds of students finding safe, affordable housing during holidays
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/search" className="btn-primary px-12 py-4 text-lg inline-block">
-                Start Searching
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer - Revamped */}
-      <footer className="bg-[#0f172a] text-white py-24 relative overflow-hidden">
-        {/* Decorative element */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-[100px]"></div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-16 mb-16">
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center shadow-lg">
-                  <Home className="w-7 h-7 text-white" />
-                </div>
-                <span className="text-2xl font-black">StudentStay</span>
-              </div>
-              <p className="text-gray-400 leading-relaxed max-w-xs">
-                Premium student housing experiences in Kabarak, Nakuru, RVIST, and Isavo Estate.
-                Built for safety, comfort, and success.
-              </p>
-              <div className="flex gap-4">
-                {/* Social placeholders could go here */}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold mb-8 flex items-center gap-2">
-                <div className="w-1.5 h-6 bg-primary-500 rounded-full"></div>
-                For Students
-              </h4>
-              <ul className="space-y-4 text-gray-400">
-                <li><Link href="/search" className="hover:text-white hover:pl-2 transition-all">Search Listings</Link></li>
-                <li><Link href="/search?location=ISAVO_ESTATE" className="text-accent-400 font-bold hover:text-accent-300 hover:pl-2 transition-all">Isavo Estate Premium</Link></li>
-                <li><Link href="/how-it-works" className="hover:text-white hover:pl-2 transition-all">How It Works</Link></li>
-                <li><Link href="/safety" className="hover:text-white hover:pl-2 transition-all">Safety Tips</Link></li>
+              <h4 className="font-black uppercase tracking-widest text-xs text-blue-500 mb-6">Explore</h4>
+              <ul className="space-y-4 text-sm font-bold text-slate-400">
+                <li><a href="#" className="hover:text-white transition-colors">Event Schedule</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Tournament Brackets</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Exhibitor List</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Media Kit</a></li>
               </ul>
             </div>
-
-
-
+            
             <div>
-              <h4 className="text-lg font-bold mb-8 flex items-center gap-2">
-                <div className="w-1.5 h-6 bg-primary-500 rounded-full"></div>
-                Company
-              </h4>
-              <ul className="space-y-4 text-gray-400">
-                <li><Link href="/about" className="hover:text-white hover:pl-2 transition-all">About Us</Link></li>
-                <li><Link href="/legal/terms" className="hover:text-white hover:pl-2 transition-all">Terms of Service</Link></li>
-                <li><Link href="/legal/privacy" className="hover:text-white hover:pl-2 transition-all">Privacy Policy</Link></li>
-                <li><Link href="/contact" className="hover:text-white hover:pl-2 transition-all">Contact</Link></li>
+              <h4 className="font-black uppercase tracking-widest text-xs text-blue-500 mb-6">Support</h4>
+              <ul className="space-y-4 text-sm font-bold text-slate-400">
+                <li><a href="#" className="hover:text-white transition-colors">Terms of Use</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
               </ul>
             </div>
           </div>
-
-          <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-gray-500 text-sm font-medium">
-              &copy; 2024 StudentStay Kenya. Designed by cossi001 🇰🇪
-            </p>
-            <div className="flex gap-8 text-sm text-gray-500 font-medium">
-              <span>Built with Love</span>
-              <span>Built for Success</span>
+          
+          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="text-slate-500 text-sm font-medium">© 2026 NexusPass Dubai. All rights reserved. Built for GameExpo 2026.</div>
+            <div className="flex gap-6">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-blue-600 hover:border-blue-600 transition-all cursor-pointer flex items-center justify-center">
+                  <div className="w-5 h-5 bg-white/20 rounded-full" />
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </footer>
+
+      <style jsx global>{`
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.35; transform: scale(1.05); }
+          50% { opacity: 0.5; transform: scale(1.1); }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 15s ease-in-out infinite;
+        }
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 3s ease-in-out infinite;
+        }
+        @keyframes scale-in {
+          0% { transform: scale(0.9); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-scale-in {
+          animation: scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+      `}</style>
     </div>
   );
 }
